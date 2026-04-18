@@ -1,21 +1,26 @@
 import socket
 
-def iniciar_cliente_tcp():
+def iniciar_servidor_tcp():
     HOST = '127.0.0.1'
     PORT = 65432
 
-    # Conectarse al servidor TCP
+    # Crear socket TCP
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((HOST, PORT))
-        print(f"[TCP CLIENT] Conectado al servidor {HOST}:{PORT}")
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((HOST, PORT))
+        s.listen()
+        print(f"[TCP SERVER] Escuchando en {HOST}:{PORT}...")
 
-        mensaje = "Hola servidor, soy el cliente TCP!"
-        s.sendall(mensaje.encode('utf-8'))
-        print(f"[TCP CLIENT] Mensaje enviado: '{mensaje}'")
+        conn, addr = s.accept()
+        with conn:
+            print(f"[TCP SERVER] Conectado por {addr}")
+            data = conn.recv(1024)
+            mensaje = data.decode('utf-8')
+            print(f"[TCP SERVER] Mensaje recibido: '{mensaje}'")
 
-        data = s.recv(1024)
-        respuesta = data.decode('utf-8')
-        print(f"[TCP CLIENT] Respuesta recibida: '{respuesta}'")
+            respuesta = f"Hola desde el servidor TCP! Recibí tu mensaje: '{mensaje}'"
+            conn.sendall(respuesta.encode('utf-8'))
+            print(f"[TCP SERVER] Respuesta enviada.")
 
 if __name__ == "__main__":
-    iniciar_cliente_tcp()
+    iniciar_servidor_tcp()
